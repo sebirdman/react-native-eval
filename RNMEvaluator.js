@@ -41,7 +41,7 @@ var execute = (data, executor) => {
   }
 
   try {
-    executor(func).apply(null,args.concat(cb))
+    executor(func).apply(null,[args, cb])
   } catch (e) {
     RNMEvaluator.functionCallCompleted(callId, `Function ${name} raised an error ${e.message}:${e.stack}`,null);
   }

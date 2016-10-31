@@ -139,6 +139,17 @@ public final class RNMEvaluator extends ReactContextBaseJavaModule {
     }
 
     /**
+     * Invokes a javascript function via RNMEvaluator.callAsyncFunction
+     * @param context
+     * @param name
+     * @param args
+     * @param cb
+     */
+    public static void callAsyncFunction(ReactContext context, String name, WritableMap args, EvaluatorCallback cb) {
+        RNMEvaluator.callFunction(context, name, args, cb, "RNMEvaluator.callAsyncFunction");
+    }
+
+    /**
      * Marshalls a function call to the javascript layer, via our NativeModule.
      *
      * @param context The context needed to execute this in.
@@ -148,20 +159,46 @@ public final class RNMEvaluator extends ReactContextBaseJavaModule {
      * @param event The name of the event that our NativeModule is listening for.
      */
     private static void callFunction(ReactContext context, String name, @Nullable Object[] args, @Nullable  EvaluatorCallback cb, String event) {
+        WritableArray arguments = args != null ? Arguments.fromJavaArgs(args) : Arguments.createArray();
+        if (arguments.size() == 0) {
+            arguments.pushNull();
+        }
+
         String callId = UUID.randomUUID().toString();
 
         if (null != cb) {
             callbacks.put(callId, cb);
         }
 
-        WritableArray arguments = args != null ? Arguments.fromJavaArgs(args) : Arguments.createArray();
-        if (arguments.size() == 0) {
-            arguments.pushNull();
+        WritableMap eventParams = Arguments.createMap();
+        eventParams.putString("name", name);
+        eventParams.putArray("args", arguments);
+        eventParams.putString("callId", callId);
+
+        // TODO: move to AppEventEmitter once App events are supported on android.
+        context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit(event, eventParams);
+    }
+
+    /**
+     * Marshalls a function call to the javascript layer, via our NativeModule.
+     *
+     * @param context The context needed to execute this in.
+     * @param name The function to execute. e.g. "Math.Pow"
+     * @param args The arguments to pass to the function, or null.
+     * @param cb The completion callback for the result, or null.
+     * @param event The name of the event that our NativeModule is listening for.
+     */
+    private static void callFunction(ReactContext context, String name, @Nullable WritableMap args, @Nullable  EvaluatorCallback cb, String event) {
+        String callId = UUID.randomUUID().toString();
+
+        if (null != cb) {
+            callbacks.put(callId, cb);
         }
 
         WritableMap eventParams = Arguments.createMap();
         eventParams.putString("name", name);
-        eventParams.putArray("args", arguments);
+        eventParams.putMap("args", args);
         eventParams.putString("callId", callId);
 
         // TODO: move to AppEventEmitter once App events are supported on android.
