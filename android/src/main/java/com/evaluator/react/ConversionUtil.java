@@ -9,6 +9,7 @@ package com.evaluator.react;
 
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
 
 import java.util.ArrayList;
@@ -81,7 +82,7 @@ import javax.annotation.Nullable;
             return null;
         }
 
-        com.facebook.react.bridge.ReadableMapKeySetIterator iterator = readableMap.keySetIterator();
+        ReadableMapKeySetIterator iterator = readableMap.keySetIterator();
         if (!iterator.hasNextKey()) {
             return null;
         }
