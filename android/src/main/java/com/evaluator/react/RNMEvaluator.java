@@ -130,10 +130,12 @@ public final class RNMEvaluator extends ReactContextBaseJavaModule {
             Log.e("RNMEvaluator", "Received returnValue that was null, lacking _VALUE, or not of type ReadableMap");
         } else {
             returnMap = returnValue.getMap(VALUE_KEY);
+            if (!returnMap.hasKey("KEEP_LISTEN") || (returnMap.hasKey("KEEP_LISTEN") && !returnMap.getBoolean("KEEP_LISTEN"))) {
+                callbacks.remove(callId);
+            }
         }
 
         cb.invoke(error, returnMap);
-        callbacks.remove(callId);
     }
 
     /**
