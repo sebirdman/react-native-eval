@@ -9,6 +9,7 @@ package com.evaluator.react;
 
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -16,6 +17,7 @@ import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
@@ -119,8 +121,18 @@ public final class RNMEvaluator extends ReactContextBaseJavaModule {
             return;
         }
 
+
         EvaluatorCallback cb = (EvaluatorCallback) callbacks.get(callId);
-        cb.invoke(error, returnValue.hasKey(VALUE_KEY) ? ConversionUtil.toObject(returnValue, VALUE_KEY) : null);
+
+        // Verify our invoke  can be called with a readable map. If it cannot we will simply pass null
+        ReadableMap returnMap = null;
+        if (returnValue == null || !returnValue.hasKey(VALUE_KEY) || returnValue.getType(VALUE_KEY) != ReadableType.Map) {
+            Log.e("RNMEvaluator", "Received returnValue that was null, lacking _VALUE, or not of type ReadableMap");
+        } else {
+            returnMap = returnValue.getMap(VALUE_KEY);
+        }
+
+        cb.invoke(error, returnMap);
         callbacks.remove(callId);
     }
 
@@ -210,6 +222,6 @@ public final class RNMEvaluator extends ReactContextBaseJavaModule {
      * Callback interface.
      */
     public interface EvaluatorCallback {
-        void invoke(String error, Object returnValue);
+        void invoke(String error, ReadableMap returnValue);
     }
 }
